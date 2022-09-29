@@ -156,6 +156,39 @@ if (searchResult.Title == "Vouto")
 }
 else
 {
+    int resultId = 0;
+    
+    SqlConnection connection = new SqlConnection(Library.connectionString);
+    
+    string type = searchResult.GetType() == typeof(Dvd) ? "dvd" : "book";
+
+    try
+    {
+        connection.Open();
+
+
+        string searchQuery = $"SELECT id FROM {type}s WHERE title = '{searchResult.Title}'";
+
+        SqlCommand cmd = new SqlCommand(searchQuery, connection);
+
+        SqlDataReader reader = cmd.ExecuteReader();
+
+        while(reader.Read())
+        {
+            resultId = reader.GetInt32(0);
+        }
+
+        reader.Close();
+    } 
+    catch(Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
+    }
+    finally
+    {
+        connection.Close();
+    }
+
     Console.WriteLine($"Abbiamo trovato un prodotto che combacia con i criteri di ricerca: {searchResult.Title}");
     Console.Write("Vuoi procedere con il prestito? ");
     string userAnswer = Console.ReadLine();
@@ -163,7 +196,45 @@ else
     if (userAnswer.ToLower() == "si" && searchResult.Available)
     {
         Loan newLoan = new Loan("12", 20092022, 22102022, searchResult, currentUser);
-        Console.WriteLine($"Prestito collegato al prodotto {searchResult.Title} accettato!");
+        SqlConnection sqlConn = new SqlConnection(Library.connectionString);
+
+        if(resultId > 0)
+        {
+            try
+            {
+                sqlConn.Open();
+
+                switch (type)
+                {
+                    case "dvd":
+                        string dvd_loan_query = $"INSERT INTO dvd_loans (start_date, end_date, dvd_id) VALUES ('20092022', '22102022', {resultId})";
+                        SqlCommand cmd = new SqlCommand(dvd_loan_query, sqlConn);
+                        int affectedRows = cmd.ExecuteNonQuery();
+                        break;
+                    case "book":
+                        string book_loan_query = $"INSERT INTO book_loans (start_date, end_date, book_id) VALUES ('20092022', '22102022', {resultId})";
+                        SqlCommand cmd1 = new SqlCommand(book_loan_query, sqlConn);
+                        int affectedRows1 = cmd1.ExecuteNonQuery();
+                        break;
+                    default:
+                        Console.WriteLine("Errore, non posso salvare i dati nel db");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                sqlConn.Close();
+            }
+            Console.WriteLine($"Prestito collegato al prodotto {searchResult.Title} accettato!");
+        } else
+        {
+            Console.WriteLine("Errore, non posso salvare i dati nel db");
+        }
+        
     }
     else if (userAnswer.ToLower() == "si" && !searchResult.Available)
     {
