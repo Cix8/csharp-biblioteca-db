@@ -1,4 +1,6 @@
-﻿#region Riempio la lista users
+﻿using Microsoft.Data.SqlClient;
+
+#region Riempio la lista users
 
 Library myLibrary = new Library("Biblioteca Nazionale");
 
@@ -8,6 +10,82 @@ User testUser2 = new User("Rossi", "Mario", "mario.rossi@email.it", "rossirossi"
 List<User> theseUsers = new List<User> { testUser1, testUser2 };
 
 myLibrary.Users = theseUsers;
+
+#endregion
+
+#region connetto il db
+
+string connectionString = "Data Source=localhost;Initial Catalog=db-library;Integrated Security=True;Encrypt=False";
+
+SqlConnection sqlConnection = new SqlConnection(connectionString);
+
+try
+{
+    sqlConnection.Open();
+    Console.WriteLine("Connesso");
+
+    string checkQuery = "SELECT * FROM books WHERE books.title = 'Libro'";
+    string checkQuery2 = "SELECT * FROM books WHERE books.title = 'Altro Libro'";
+    string checkQuery3 = "SELECT * FROM books WHERE books.title = 'Ancora un altro Libro'";
+
+    SqlCommand checkCmd = new SqlCommand(checkQuery, sqlConnection);
+    SqlCommand checkCmd2 = new SqlCommand(checkQuery2, sqlConnection);
+    SqlCommand checkCmd3 = new SqlCommand(checkQuery3, sqlConnection);
+
+    SqlDataReader reader = checkCmd.ExecuteReader();
+    bool cond = reader.Read() ? true : false;
+    reader.Close();
+    SqlDataReader reader2 = checkCmd2.ExecuteReader();
+    bool cond2 = reader2.Read() ? true : false;
+    reader2.Close();
+    SqlDataReader reader3 = checkCmd3.ExecuteReader();
+    bool cond3 = reader3.Read() ? true : false;
+    reader3.Close();
+
+    if(!cond && !cond2 && !cond3)
+    {
+        Console.WriteLine("seeding db");
+        string booksQuery = "INSERT INTO books (isbn, pages, title, year, genre, shelf_code, author) VALUES ('8891828939', 200, 'Libro', 2020, 'Comico', '7A', 'Maccio Capatonda');" +
+                   "INSERT INTO books (isbn, pages, title, year, genre, shelf_code, author) VALUES ('1099887667', 150, 'Altro Libro', 1980, 'Horror', '12B', 'Scrit Tore');" +
+                   "INSERT INTO books (isbn, pages, title, year, genre, shelf_code, author) VALUES ('1199887667', 150, 'Ancora un altro Libro', 1981, 'Pesante', '13B', 'Scrit Tore');";
+
+        SqlCommand cmd = new SqlCommand(booksQuery, sqlConnection);
+        int affectedRows = cmd.ExecuteNonQuery();
+    }
+
+    checkQuery = "SELECT * FROM dvds WHERE dvds.title = 'Film'";
+    checkQuery2 = "SELECT * FROM dvds WHERE dvds.title = 'Film Brutto'";
+
+    checkCmd = new SqlCommand(checkQuery, sqlConnection);
+    checkCmd2 = new SqlCommand(checkQuery2, sqlConnection);
+
+    reader = checkCmd.ExecuteReader();
+    cond = reader.Read() ? true : false;
+    reader.Close();
+    reader2 = checkCmd2.ExecuteReader();
+    cond2 = reader2.Read() ? true : false;
+    reader2.Close();
+
+    if(!cond && !cond2)
+    {
+        Console.WriteLine("seeding dvds");
+        string dvdsQuery = "INSERT INTO dvds (serial_number, duration_in_minutes, title, year, genre, shelf_code, author) VALUES ('18891828939', 200, 'Film', 2020, 'Comico', '7A', 'Reg Ista');" +
+                   "INSERT INTO dvds (serial_number, duration_in_minutes, title, year, genre, shelf_code, author) VALUES ('11891828939', 200, 'Film Brutto', 2020, 'Horror', '7A', 'Reg Ista');";
+        
+        SqlCommand cmd = new SqlCommand(dvdsQuery, sqlConnection);
+        int affectedRows = cmd.ExecuteNonQuery();
+    }
+
+    
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
+}
+finally
+{
+    sqlConnection.Close();
+}
 
 #endregion
 
