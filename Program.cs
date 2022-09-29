@@ -1,9 +1,11 @@
 ﻿#region Riempio la lista users
 
+Library myLibrary = new Library("Biblioteca Nazionale");
+
 User testUser1 = new User("Nat", "Frank", "frank.nat@email.it", "frankfrank", "3453453455");
 User testUser2 = new User("Rossi", "Mario", "mario.rossi@email.it", "rossirossi", "3293293299");
 
-List<User> theseUsers = new List<User> { testUser1, testUser2 }
+List<User> theseUsers = new List<User> { testUser1, testUser2 };
 
 myLibrary.Users = theseUsers;
 
